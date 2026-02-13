@@ -1,7 +1,7 @@
 package curso_spring.controllers;
 
-import curso_spring.data.dto.PersonDto;
-import curso_spring.service.PersonServices;
+import curso_spring.data.dto.BookDTO;
+import curso_spring.service.BookServices;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -10,21 +10,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
 @RestController
-@RequestMapping("/api/person/v1")
-@Tag(name = "People", description = "Endpoints for Managing People")
-public class PersonController  {
+@RequestMapping("/api/book/v1")
+@Tag(name = "Book", description = "Endpoints for Managing Book")
+public class BookController {
 
     @Autowired
-    private PersonServices service;
+    private BookServices service;
 
     @GetMapping(produces = {
             MediaType.APPLICATION_JSON_VALUE,
             MediaType.APPLICATION_XML_VALUE,
             MediaType.APPLICATION_YAML_VALUE})
-    
-    public List<PersonDto> findAll() {
+    public List<BookDTO> findAll() {
         return service.findAll();
     }
 
@@ -34,7 +32,7 @@ public class PersonController  {
                     MediaType.APPLICATION_XML_VALUE,
                     MediaType.APPLICATION_YAML_VALUE}
     )
-    public PersonDto findById(@PathVariable("id") Long id) {
+    public BookDTO findById(@PathVariable("id") Long id) {
         return service.findById(id);
     }
 
@@ -48,9 +46,8 @@ public class PersonController  {
                     MediaType.APPLICATION_XML_VALUE,
                     MediaType.APPLICATION_YAML_VALUE}
     )
-    
-    public PersonDto create(@RequestBody PersonDto person) {
-        return service.create(person);
+    public BookDTO create(@RequestBody BookDTO book) {
+        return service.create(book);
     }
 
     @PutMapping(
@@ -63,14 +60,12 @@ public class PersonController  {
                     MediaType.APPLICATION_XML_VALUE,
                     MediaType.APPLICATION_YAML_VALUE}
     )
-    
-    public PersonDto update(@RequestBody PersonDto person) {
-        return service.update(person);
+    public BookDTO update(@RequestBody BookDTO book) {
+        return service.update(book);
     }
 
 
     @DeleteMapping(value = "/{id}")
-    
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

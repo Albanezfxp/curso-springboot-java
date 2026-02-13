@@ -1,26 +1,23 @@
-package curso_spring.model;
+package curso_spring.data.dto;
 
 
 import jakarta.persistence.*;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@Entity
-@Table(name = "person")
-public class Person implements Serializable {
+public class PersonDto extends RepresentationModel<PersonDto> implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
-
     private String firstName;
     private String lastName;
     private String Address;
     private String Gender;
 
 
-    public Person() {
+    public PersonDto() {
     }
 
     public long getId() {
@@ -66,7 +63,7 @@ public class Person implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Person person = (Person) o;
+        PersonDto person = (PersonDto) o;
         return id == person.id && Objects.equals(firstName, person.firstName) && Objects.equals(lastName, person.lastName) && Objects.equals(Address, person.Address) && Objects.equals(Gender, person.Gender);
     }
 
@@ -74,4 +71,5 @@ public class Person implements Serializable {
     public int hashCode() {
         return Objects.hash(id, firstName, lastName, Address, Gender);
     }
+
 }

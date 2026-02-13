@@ -1,75 +1,94 @@
 package curso_spring.service;
 
+import curso_spring.controllers.PersonController;
+import curso_spring.data.dto.PersonDto;
+import curso_spring.exception.RequiredObjectIsNullException;
+import curso_spring.exception.ResourceNotFoundException;
+import curso_spring.mapper.ObjectMapper;
 import curso_spring.model.Person;
+import curso_spring.repository.PersonRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Logger;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 
 @Service
 public class PersonServices {
 
-    private final AtomicLong counter = new AtomicLong();
+    private Logger logger = LoggerFactory.getLogger(PersonServices.class.getName());
 
-    private Logger logger = Logger.getLogger(PersonServices.class.getName());
+    @Autowired
+    PersonRepository repository;
 
-    public List<Person> findAll() {
+
+    public List<PersonDto> findAll() {
 
         logger.info("Finding all People!");
 
-        List<Person> persons = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            Person person = mockPerson(i);
-            persons.add(person);
-        }
+        var persons = ObjectMapper.parseListObject(repository.findAll(), PersonDto.class);
+        persons.forEach(this::addHateoasLinks);
         return persons;
     }
 
-    public Person findById(String id) {
+    public PersonDto findById(Long id) {
         logger.info("Finding one Person!");
 
-        Person person = new Person();
-        person.setId(counter.incrementAndGet());
-        person.setFirstName("Leandro");
-        person.setLastName("Costa");
-        person.setAddress("Uberlândia - Minas Gerais - Brasil");
-        person.setGender("Male");
-        return person;
+        var entity = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID!"));
+        var dto =  ObjectMapper.parseObject(entity, PersonDto.class);
+        addHateoasLinks(dto);
+        return dto;
     }
 
-    public Person create(Person person) {
+    public PersonDto create(PersonDto person) {
+
+        if (person == null) throw new RequiredObjectIsNullException();
 
         logger.info("Creating one Person!");
+        var entity = ObjectMapper.parseObject(person, Person.class);
 
-        return person;
+        var dto = ObjectMapper.parseObject(repository.save(entity), PersonDto.class);
+        addHateoasLinks(dto);
+        return dto;
     }
 
-    public Person update(Person person) {
+    public PersonDto update(PersonDto person) {
+
+        if (person == null) throw new RequiredObjectIsNullException();
 
         logger.info("Updating one Person!");
+        Person entity = repository.findById(person.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID!"));
 
-        return person;
+        entity.setFirstName(person.getFirstName());
+        entity.setLastName(person.getLastName());
+        entity.setAddress(person.getAddress());
+        entity.setGender(person.getGender());
+
+        var dto = ObjectMapper.parseObject(repository.save(entity), PersonDto.class);
+        addHateoasLinks(dto);
+        return dto;
+
     }
+    public void delete(Long id) {
+    logger.info("Deleting one Person!");
+    Person entity = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("No records found for this ID!"));
 
-    public void delete(String id) {
-
-        logger.info("Deleting one Person!");
-
-    }
+    repository.delete(entity); }
 
 
+    private void addHateoasLinks(PersonDto dto) {
+        dto.add(linkTo(methodOn(PersonController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(PersonController.class).findAll()).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(PersonController.class).create(dto)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(PersonController.class).update(dto)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(PersonController.class).delete(dto.getId())).withRel("delete").withType("DELETE"));
 
-    private Person mockPerson(int i) {
-        Person person = new Person();
-        person.setId(counter.incrementAndGet());
-        person.setFirstName("Firstname " + i);
-        person.setLastName("Lastname " + i);
-        person.setAddress("Some Address in Brasil");
-        person.setGender("Male");
-        return person;
     }
 }
-
-
